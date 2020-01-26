@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -43,6 +44,19 @@ func makeHTTPToHTTPSRedirectServer() *http.Server {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	file, err := os.OpenFile("/var/log/veryxorp/app.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(file)
 
 	certDir, ok := os.LookupEnv("CERTS_DIR")
 	if !ok {
@@ -112,7 +126,7 @@ func main() {
 
 	httpSrv.Addr = ":80"
 	fmt.Printf("Starting HTTP server on %s\n", httpSrv.Addr)
-	err := httpSrv.ListenAndServe()
+	err = httpSrv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("httpSrv.ListenAndServe() failed with %s", err)
 	}
